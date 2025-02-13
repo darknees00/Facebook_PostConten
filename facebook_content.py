@@ -9,22 +9,25 @@ import time
 
 # Cấu hình MySQL
 MYSQL_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "123456",
-    "database": "facebook_db"
+    "host": "52.184.83.97",
+    "user": "nhoma",
+    "password": "123",
+    "database": "managerwarehouse"
 }
 
 # Cấu hình Facebook API
-ACCESS_TOKEN = 'EAAdjsNEF2PEBO8x6ndZAUGGsli4roZBmnFPjzEZAw0ppVmRpgf1Nk6uV1I2zs0onLU7ZCRRj6dSc4fHkVVfx8xzp6ZCZAttnvRQdYIhjTqIsHCpOZA0RicZC7OPhMv87vhxP0W3ofrXvsnB2xqfde0QZC9YCBVRKiwofGJMtTqbqTYL4Up459SoZAlUZCUU70GAUPrXKxzbKY8MKfgM7VLhjtjkQBeXooZCtbfsX'
+APP_ID = '2079935909189873'
+APP_SECRET = '05eb99381e53bbc658241aa8e1d6ab9e'
+ACCESS_TOKEN = 'EAAdjsNEF2PEBOyaW8wM4gOJXAedYHoZCoZBkbjbGqkJshMcNTACKGwFZC2BpEogHVa7MSk0i3mjpCoV9YX1ZCZAQlPzb8Whkg5MKYZAlXOHOTnqybrgRYOrlCEfReHQgs9dv1IOxwkfHZAhW5oQisgZCelWCHNyaQhXcZBZCXP1ieUR9ZAxEyL9EFVbt5f0o3Fbjtl8mRaWqoGL'
 GROUP_ID = '549460434918855'
+FB_EXCHANGE_TOKEN_URL = f"https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id={APP_ID}&client_secret={APP_SECRET}&fb_exchange_token={ACCESS_TOKEN}"
 
 # Cấu hình Email
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 EMAIL_SENDER = "winzero26@gmail.com"
 EMAIL_PASSWORD = "xtbfixuiszbrljxu"
-EMAIL_RECEIVERS = ["sharketernaldarkness@gmail.com"]
+EMAIL_RECEIVERS = ["sharketernaldarkness@gmail.com", "chang.shuwei.job@gmail.com"]
 
 # URL API Facebook
 url = f"https://graph.facebook.com/v22.0/{GROUP_ID}/feed"
@@ -33,7 +36,7 @@ params = {
     'limit': 10
 }
 
-keywords = ["享讀時光", "新書上架"]
+keywords = ["新書上架", "享讀時光", "新書上架"]
 
 # Kết nối MySQL
 conn = mysql.connector.connect(**MYSQL_CONFIG)
@@ -89,9 +92,9 @@ def save_post(post_id, content, created_time):
         sql = "INSERT INTO posts (post_id, content, created_time) VALUES (%s, %s, %s)"
         cursor.execute(sql, (post_id, content, datetime.now()))
         conn.commit()
-        print(f" Lưu bài đăng {post_id} vào bảng posts")
+        print(f" Save post {post_id} to posts table")
     else:
-        print(f" Bài đăng {post_id} đã tồn tại, bỏ qua")
+        print(f" Post {post_id} already exists, ignore")
 
 def save_matched_post(post_id, content, matched_keyword):
     #Lưu bài viết chứa từ khóa vào matched_posts
@@ -100,7 +103,7 @@ def save_matched_post(post_id, content, matched_keyword):
         sql = "INSERT INTO matched_posts (post_id, content, matched_keyword, sent_email) VALUES (%s, %s, %s, %s)"
         cursor.execute(sql, (post_id, content, matched_keyword, False))
         conn.commit()
-        print(f"Bài đăng {post_id} chứa từ khóa '{matched_keyword}' đã được lưu")
+        print(f"The post {post_id} containing the keyword '{matched_keyword}' has been saved")
 
 def send_email(post_id, content, matched_keyword):
     # Kiểm tra nếu email đã được gửi
@@ -162,14 +165,14 @@ def get_facebook_posts():
         print("Error while retrieving data:", response.status_code, response.text)
 
 # Gọi hàm lấy bài đăng
-# get_facebook_posts()
+get_facebook_posts()
 
 def job():
     print("🔄 Running new post check...")
     get_facebook_posts()
 
 # Lên lịch chạy mỗi 1 giờ
-schedule.every(1).hours.do(job)
+schedule.every(1).minutes.do(job)
 
 print("✅ Facebook monitoring system is running. Every 1 hour will check for new posts...")
 while True:
